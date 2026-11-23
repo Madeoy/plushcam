@@ -29,8 +29,8 @@ const ch=[],r=rec=new MediaRecorder(ms,{mimeType:mt});r.ondataavailable=e=>ch.pu
 s.style.borderRadius='22px';s.style.transform='scale(.7)';const t0=Date.now();tm.style.display='block';tm.textContent='00:00';ti=setInterval(()=>{const q=(Date.now()-t0)/1e3|0;tm.textContent=String(q/60|0).padStart(2,0)+':'+String(q%60).padStart(2,0)},500)};
 g.onclick=()=>{if(!last)return;const a=document.createElement('a');a.download=(ext=='jpg'?'IMG_':'VID_')+Date.now()+'.'+ext;a.href=last;a.click()};
 async function detect(){if(m&&v.readyState>1){const now=performance.now(),d=(await m.detect(v,20,.35)).filter(p=>p.class=='teddy bear'),used=new Set;
-const nb=d.map(p=>{const[bx,by,w,h]=p.bbox,o=bears.find(b=>!used.has(b)&&Math.hypot(b.x+b.w/2-bx-w/2,b.y+b.h/2-by-h/2)<w/2);o&&used.add(o);const L=(q,n)=>o?o[q]*.7+n*.3:n;return{x:L('x',bx),y:L('y',by),w:L('w',w),h:L('h',h),t0:o?o.t0:now+Math.random()*500,ph:o?o.ph:Math.random()*9,seen:now}});
-bears=nb.concat(bears.filter(b=>!used.has(b)&&now-b.seen<1200))}setTimeout(detect,250)}
+const nb=d.map(p=>{const[bx,by,w,h]=p.bbox,o=bears.find(b=>!used.has(b)&&Math.hypot(b.x+b.w/2-bx-w/2,b.y+b.h/2-by-h/2)<w/2);o&&used.add(o);const L=(q,n)=>o?o[q]*.7+n*.3:n;return{x:L('x',bx),y:L('y',by),w:L('w',w),h:L('h',h),t0:o?o.t0:now+Math.random()*500,ph:o?o.ph:Math.random()*9,wv:o?o.wv:null,sd:o?o.sd:Math.random()<.5?1:-1,seen:now}});
+bears=nb.concat(bears.filter(b=>!used.has(b)&&now-b.seen<1200));bears.forEach(b=>{if(b.wv==null)b.wv=!bears.some(o=>o.wv)&&Math.random()<.7})}setTimeout(detect,250)}
 const N=8,S=Math.sin,PI=Math.PI;
 function tri(s,d){const cx=(d[0]+d[2]+d[4])/3,cy=(d[1]+d[3]+d[5])/3;x.save();x.beginPath();
 for(let i=0;i<3;i++){const px=d[2*i]+(d[2*i]-cx)*.05,py=d[2*i+1]+(d[2*i+1]-cy)*.05;i?x.lineTo(px,py):x.moveTo(px,py)}x.clip();
@@ -38,14 +38,19 @@ const[s0,t0,s1,t1,s2,t2]=s,[d0,e0,d1,e1,d2,e2]=d,q=(s1-s0)*(t2-t0)-(s2-s0)*(t1-t
 const A=((d1-d0)*(t2-t0)-(d2-d0)*(t1-t0))/q,C=((d2-d0)*(s1-s0)-(d1-d0)*(s2-s0))/q,B=((e1-e0)*(t2-t0)-(e2-e0)*(t1-t0))/q,D=((e2-e0)*(s1-s0)-(e1-e0)*(s2-s0))/q;
 x.transform(A,B,C,D,d0-A*s0-C*t0,e0-B*s0-D*t0);const mx=Math.min(s0,s1,s2)-4,my=Math.min(t0,t1,t2)-4,W=Math.max(s0,s1,s2)+4-mx,H=Math.max(t0,t1,t2)+4-my;
 x.drawImage(v,mx,my,W,H,mx,my,W,H);x.restore()}
-function warp(b,a,k,pk){const P=[];for(let j=0;j<=N;j++)for(let i=0;i<=N;i++){const u=i/N,w=j/N,sx=b.x+u*b.w,sy=b.y+w*b.h,e=S(PI*u)*S(PI*w);
-let qx=(u-.5)*b.w,qy=(w-.75)*b.h,sc=e*a*(.06+.012*S(k*2.6)),dx=qx*sc,dy=qy*sc-e*b.h*.05*pk;
-const hw=e*Math.min(1,Math.max(0,(.62-w)/.35)),th=a*hw*(.09*S(k*.8)+.04);qy=(w-.6)*b.h;
-dx+=qx*(Math.cos(th)-1)-qy*S(th)+a*e*b.w*.018*S(k*1.1);dy+=qx*S(th)+qy*(Math.cos(th)-1)+a*hw*b.h*.015*S(k*1.7);P.push([sx,sy,sx+dx,sy+dy])}
-for(let j=0;j<N;j++)for(let i=0;i<N;i++){const p=P[j*(N+1)+i],r=P[j*(N+1)+i+1],l=P[(j+1)*(N+1)+i],z=P[(j+1)*(N+1)+i+1];
-tri([p[0],p[1],r[0],r[1],l[0],l[1]],[p[2],p[3],r[2],r[3],l[2],l[3]]);tri([r[0],r[1],z[0],z[1],l[0],l[1]],[r[2],r[3],z[2],z[3],l[2],l[3]])}}
+function nz(k,s){const i=Math.floor(k),f=k-i,h=n=>{const q=S((n+s)*127.1)*43758.5;return q-Math.floor(q)-.5},g=f*f*(3-2*f);return h(i)*(1-g)+h(i+1)*g}
+function warp(b,a,k,pk,al){const P=[],M=.3,X=b.x-M*b.w,Y=b.y-M*b.h,W=b.w*(1+2*M),H=b.h*(1+2*M),C=Math.cos,R=12,
+tilt=a*(.02+.22*nz(k*.45,b.ph)),nod=a*.05*nz(k*.6,b.ph+3),lean=a*(.05+.04*nz(k*.3,b.ph+7)),br=a*.008*S(k*2.4),sw=a*.025*nz(k*.35,b.ph+11),
+ru=b.wv&&al>2?Math.min(1,Math.max(0,(nz(al*.3,b.ph+20)-.08)*7)):0,up=a*ru*ru*(3-2*ru),sd=b.sd,lk=a*Math.sign(c.width/2-b.x-b.w/2),sm=a*Math.min(1,Math.max(0,(nz(al*.25,b.ph+30)+.25)*4));
+for(let j=0;j<=R;j++)for(let i=0;i<=R;i++){const u=i/R,w=j/R,sx=X+u*W,sy=Y+w*H,e=S(PI*u)*S(PI*w),bu=(sx-b.x)/b.w,bv=(sy-b.y)/b.h,
+bw=e*Math.exp(-(((bu-.5)/.7)**2+((bv-.5)/.8)**2));let px=(bu-.5)*b.w,py=(bv-.85)*b.h,sc=bw*(lean+br),dx=px*sc+bw*b.w*sw,dy=py*sc-bw*b.h*.05*pk;
+const hw=bw*Math.min(1,Math.max(0,(.55-bv)/.3)),th=hw*tilt;py=(bv-.5)*b.h;dx+=px*(C(th)-1)-py*S(th);dy+=px*S(th)+py*(C(th)-1)+hw*b.h*nod;dx+=hw*(lk*b.w*.05+a*.05*px);dy+=hw*a*.05*(bv-.3)*b.h;const mo=e*Math.exp(-(((bu-.5)/.16)**2+((bv-.38)/.07)**2));dy-=sm*mo*b.h*.07*Math.min(1,((bu-.5)/.08)**2);dx+=sm*mo*(bu-.5)*b.w*.15;
+if(up){const dd=Math.min(1,Math.max(0,1-(Math.hypot(bu-.5-sd*.37,(bv-.6)*.8)-.1)/.09)),wa=e*dd*dd*(3-2*dd),f=-sd*up*wa*(1.05+.35*S(al*11)),ox=(bu-.5-sd*.24)*b.w,oy=(bv-.44)*b.h;dx+=ox*(C(f)-1)-oy*S(f);dy+=ox*S(f)+oy*(C(f)-1)}
+P.push([sx,sy,sx+dx,sy+dy])}
+for(let j=0;j<R;j++)for(let i=0;i<R;i++){const p=P[j*(R+1)+i],q=P[j*(R+1)+i+1],l=P[(j+1)*(R+1)+i],z=P[(j+1)*(R+1)+i+1];
+tri([p[0],p[1],q[0],q[1],l[0],l[1]],[p[2],p[3],q[2],q[3],l[2],l[3]]);tri([q[0],q[1],z[0],z[1],l[0],l[1]],[q[2],q[3],z[2],z[3],l[2],l[3]])}}
 function draw(){const t=performance.now();x.save();if(face=='user'){x.translate(c.width,0);x.scale(-1,1)}x.drawImage(v,0,0);
-for(const b of bears){let a=Math.min(1,Math.max(0,(t-b.t0-1000)/800));a=a*a*(3-2*a);if(a)warp(b,a,t/1000+b.ph,Math.exp(-(((t-b.t0-1500)/350)**2)))}
+for(const b of bears){let a=Math.min(1,Math.max(0,(t-b.t0-1000)/800));a=a*a*(3-2*a);if(a)warp(b,a,t/1000+b.ph,Math.exp(-(((t-b.t0-1500)/350)**2)),(t-b.t0)/1000)}
 x.restore();requestAnimationFrame(draw)}
 document.addEventListener("pointerdown",()=>{const d=document.documentElement;document.fullscreenElement||d.requestFullscreen?.({navigationUI:"hide"}).catch(()=>{})});
 cam().then(async()=>{draw();m=await cocoSsd.load();detect()});
