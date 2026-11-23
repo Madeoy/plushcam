@@ -1,0 +1,22 @@
+<!doctype html><meta name=viewport content="width=device-width,initial-scale=1"><title>Camera</title>
+<style>body{margin:0;background:#000;overflow:hidden}canvas{width:100vw;height:100vh;object-fit:cover}
+button{position:fixed;bottom:24px;border:0;border-radius:50%;font-size:24px}#s{left:50%;transform:translateX(-50%);width:72px;height:72px;background:#fff;border:6px solid #aaa}#f{right:24px;width:52px;height:52px}video{display:none}</style>
+<video id=v playsinline muted></video><canvas id=c></canvas><button id=s></button><div style="position:fixed;bottom:110px;width:100%;text-align:center;color:#fc0;font:600 13px sans-serif;letter-spacing:2px">PHOTO</div><button id=f>🔄</button>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
+<script>
+const v=document.getElementById('v'),c=document.getElementById('c'),x=c.getContext('2d');let m,face='user',bears=[],st;
+async function cam(){st&&st.getTracks().forEach(t=>t.stop());st=await navigator.mediaDevices.getUserMedia({video:{facingMode:face}});v.srcObject=st;await v.play();c.width=v.videoWidth;c.height=v.videoHeight}
+f.onclick=()=>{face=face=='user'?'environment':'user';cam()};
+s.onclick=()=>{const a=document.createElement('a');a.download="IMG_"+Date.now()+".png";a.href=c.toDataURL();a.click();c.style.opacity=0;setTimeout(()=>c.style.opacity=1,80)};
+async function detect(){if(m&&v.readyState>1){const now=performance.now(),d=(await m.detect(v)).filter(p=>p.class=='teddy bear');
+bears=d.map(p=>{const[bx,by,w,h]=p.bbox,o=bears.find(b=>Math.hypot(b.x+b.w/2-bx-w/2,b.y+b.h/2-by-h/2)<w/2);return{x:bx,y:by,w,h,t0:o?o.t0:now}})}setTimeout(detect,250)}
+function draw(){const t=performance.now();x.save();if(face=='user'){x.translate(c.width,0);x.scale(-1,1)}x.drawImage(v,0,0);
+for(const b of bears){const a=Math.min(1,Math.max(0,(t-b.t0-1000)/600));if(!a)continue;const k=t/1000;
+x.save();x.translate(b.x+b.w/2,b.y+b.h);x.rotate(a*(.08*Math.sin(k*2)+(b.x+b.w/2<c.width/2?.1:-.1)));x.scale(1+.1*a,1+.1*a+.02*Math.sin(k*6));
+x.drawImage(v,b.x,b.y,b.w,b.h,-b.w/2,-b.h,b.w,b.h);
+x.globalAlpha=a;x.strokeStyle='#311';x.lineWidth=b.w*.03;x.lineCap='round';x.beginPath();x.arc(0,-b.h*.42,b.w*.1,.2,Math.PI-.2);x.stroke();
+x.font=b.w*.35+'px serif';x.translate(b.w*.45,-b.h*.6);x.rotate(.5*Math.sin(k*9));x.scale(face=='user'?-1:1,1);x.fillText('👋',-b.w*.17,b.w*.12);x.restore()}
+x.restore();requestAnimationFrame(draw)}
+cam().then(async()=>{draw();m=await cocoSsd.load();detect()});
+</script>
