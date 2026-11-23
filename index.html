@@ -69,5 +69,6 @@ A.EL.push(X(f.l[0]),Y(f.l[1]),lk*r*.35,a*.012*nz(k*.35,b.ph+11)+.03*Math.exp(-((
 for(const z in A)A[z].push(0,0,1,1)}for(const z in A)gl.uniform4fv(U(z),A[z]);gl.uniform2f(U('Z'),c.width,c.height);gl.uniform1f(U('MI'),face=='user'?1:0);gl.drawArrays(gl.TRIANGLES,0,3)}
 requestAnimationFrame(draw)}
 document.addEventListener("pointerdown",()=>{const d=document.documentElement;document.fullscreenElement||d.requestFullscreen?.({navigationUI:"hide"}).catch(()=>{})});
+navigator.serviceWorker&&navigator.serviceWorker.register('sw.js');
 cam().then(async()=>{draw();m=await cocoSsd.load();detect()});
 </script>
