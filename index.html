@@ -44,10 +44,11 @@ const f=E?{l:E[0].slice(0,2),r:E[1].slice(0,2),n:N.slice(0,2)}:{l:[.38,.25],r:[.
 if(!b.f)b.f=f;else for(const k of['l','r','n'])for(const z of[0,1])b.f[k][z]+=(f[k][z]-b.f[k][z])*.2}
 const PR=[[.13,.12,1.4,1.6,1,.45,1.3],[.1,.04,1,1,1.6,.15,1],[.12,.1,1,2.4,.5,.3,1.1],[.16,.05,1,.6,.3,.2,.8]];function nz(k,s){const i=Math.floor(k),f=k-i,h=n=>{const q=S((n+s)*127.1)*43758.5;return q-Math.floor(q)-.5},g=f*f*(3-2*f);return h(i)*(1-g)+h(i+1)*g}
 const FS=`precision highp float;uniform sampler2D T;uniform vec2 Z;uniform float MI;uniform vec4 B[4],P[4],Q[4],EL[4],ER[4],N[4];
-void main(){vec2 p=vec2(gl_FragCoord.x,Z.y-gl_FragCoord.y);if(MI>0.)p.x=Z.x-p.x;vec2 q=p;
-for(int i=0;i<4;i++){if(P[i].x<=0.||Q[i].z<=0.)continue;float r=N[i].z*.8;
-for(int k=0;k<2;k++){vec2 E=k==0?EL[i].xy:ER[i].xy;float m=1.-smoothstep(r*.9,r*1.6,length(q-E));float yl=E.y+r*.5;q.y-=Q[i].z*m*(1.-smoothstep(yl-r*.2,yl+r*.2,q.y))*r*1.5;}}
-gl_FragColor=texture2D(T,q/Z);}`;
+void main(){vec2 p=vec2(gl_FragCoord.x,Z.y-gl_FragCoord.y);if(MI>0.)p.x=Z.x-p.x;vec4 col=texture2D(T,p/Z);
+for(int i=0;i<4;i++){if(P[i].x<=0.||Q[i].z<=0.)continue;float R=N[i].z*1.3;
+for(int k=0;k<2;k++){vec2 E=k==0?EL[i].xy:ER[i].xy;float disc=1.-smoothstep(R*.8,R,length((p-E)*vec2(.72,1.)));float yl=E.y-R+2.*R*Q[i].z;
+float w=disc*(1.-smoothstep(yl-R*.12,yl+R*.12,p.y));vec4 fur=.5*(texture2D(T,(p+vec2(R*2.2,0.))/Z)+texture2D(T,(p-vec2(R*2.2,0.))/Z));col=mix(col,fur*(1.-.3*Q[i].z*smoothstep(yl-R*.3,yl,p.y)),w);}}
+gl_FragColor=col;}`;
 const pr=gl.createProgram();[[gl.VERTEX_SHADER,'attribute vec2 p;void main(){gl_Position=vec4(p,0,1);}'],[gl.FRAGMENT_SHADER,FS]].forEach(([y,s])=>{const h=gl.createShader(y);gl.shaderSource(h,s);gl.compileShader(h);if(!gl.getShaderParameter(h,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(h));gl.attachShader(pr,h)});
 gl.linkProgram(pr);gl.useProgram(pr);gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
 gl.bindTexture(gl.TEXTURE_2D,gl.createTexture());[[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE],[gl.TEXTURE_MIN_FILTER,gl.LINEAR],[gl.TEXTURE_MAG_FILTER,gl.LINEAR]].forEach(([k,q])=>gl.texParameteri(gl.TEXTURE_2D,k,q));
