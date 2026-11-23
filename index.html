@@ -30,7 +30,7 @@ s.style.borderRadius='22px';s.style.transform='scale(.7)';const t0=Date.now();tm
 g.onclick=()=>{if(!last)return;const a=document.createElement('a');a.download=(ext=='jpg'?'IMG_':'VID_')+Date.now()+'.'+ext;a.href=last;a.click()};
 async function detect(){if(m&&v.readyState>1){const now=performance.now(),d=(await m.detect(v,20,.35)).filter(p=>p.class=='teddy bear'),used=new Set;
 const nb=d.map(p=>{const[bx,by,w,h]=p.bbox,o=bears.find(b=>!used.has(b)&&Math.hypot(b.x+b.w/2-bx-w/2,b.y+b.h/2-by-h/2)<w/2);o&&used.add(o);const L=(q,n)=>o?o[q]*.7+n*.3:n;
-return{x:o?o.x:bx,y:o?o.y:by,w:o?o.w:w,h:o?o.h:h,tx:bx,ty:by,tw:w,th:h,pr:o?o.pr:Math.random()*4|0,tb:o?o.tb:Math.random()<.5?1:-1,t0:o?o.t0:now+Math.random()*500,ph:o?o.ph:Math.random()*9,wv:o?o.wv:null,sd:o?o.sd:Math.random()<.5?1:-1,f:o&&o.f,nb:o&&o.nb,bs:o&&o.bs,seen:now}});
+return{x:o?o.x:bx,y:o?o.y:by,w:o?o.w:w,h:o?o.h:h,tx:bx,ty:by,tw:w,th:h,pr:o?o.pr:Math.random()*4|0,tb:o?o.tb:Math.random()<.5?1:-1,t0:o?o.t0:now+Math.random()*500,ph:o?o.ph:Math.random()*9,wv:o?o.wv:null,sd:o?o.sd:Math.random()<.5?1:-1,f:o&&o.f,el:o&&o.el,er:o&&o.er,fz:o&&o.fz||0,nb:o&&o.nb,bs:o&&o.bs,seen:now}});
 bears=nb.concat(bears.filter(b=>!used.has(b)&&now-b.seen<1200));bears.forEach(b=>{if(b.wv==null)b.wv=!bears.some(o=>o.wv)&&Math.random()<.7});nb.forEach(feat)}setTimeout(detect,250)}
 const ONLY_BLINK=1,S=Math.sin,fc=document.createElement('canvas'),fx=fc.getContext('2d',{willReadFrequently:true});fc.width=48;fc.height=40;
 function feat(b){const GW=96,GH=80,n=GW*GH;fc.width=GW;fc.height=GH;fx.drawImage(v,b.x,b.y,b.w,b.h*.6,0,0,GW,GH);const d=fx.getImageData(0,0,GW,GH).data,L=new Float32Array(n),I=new Float64Array((GW+1)*(GH+1));let gm=0;
@@ -39,12 +39,12 @@ for(let y=0;y<GH;y++){let row=0;for(let x=0;x<GW;x++){row+=L[y*GW+x];I[(y+1)*(GW
 const dk=new Uint8Array(n);for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const x0=Math.max(0,x-8),x1=Math.min(GW,x+9),y0=Math.max(0,y-8),y1=Math.min(GH,y+9),m=(I[y1*(GW+1)+x1]-I[y0*(GW+1)+x1]-I[y1*(GW+1)+x0]+I[y0*(GW+1)+x0])/((x1-x0)*(y1-y0)),l=L[y*GW+x];if(l<m*.65&&l<gm*.8)dk[y*GW+x]=1}
 const cp=[],lab=new Int32Array(n).fill(-1);for(let i=0;i<n;i++)if(dk[i]&&lab[i]<0){const st=[i];lab[i]=cp.length;let a=0,sx=0,sy=0;while(st.length){const j=st.pop(),x=j%GW,y=(j/GW)|0;a++;sx+=x;sy+=y;for(const k of[j-1,j+1,j-GW,j+GW]){if(k<0||k>=n||Math.abs(k%GW-x)>1)continue;if(dk[k]&&lab[k]<0){lab[k]=cp.length;st.push(k)}}}cp.push({a,x:sx/a,y:sy/a})}
 const big=cp.filter(c=>c.a>=3&&c.x>GW*.12&&c.x<GW*.88);let N=null,ns=0;for(const c of big){if(c.y<GH*.15||c.y>GH*.78||c.x<GW*.2||c.x>GW*.8)continue;const s=c.a*(1-Math.abs(c.x/GW-.5)*1.5);if(s>ns){ns=s;N=c}}if(!N)return;
-const ok=(c,sd)=>{const dx=(c.x-N.x)*sd;return c!==N&&c.a<=GW*GW*.012&&c.a<N.a*.8&&dx>GW*.06&&dx<GW*.45&&c.y<N.y-1&&Math.abs(c.y-(N.y-GH*.15))<GH*.17},Ls=big.filter(c=>ok(c,-1)),Rs=big.filter(c=>ok(c,1));let El=null,Er=null,bs=-1e9;
-for(const p of Ls)for(const q of Rs){const s=p.a+q.a-3*Math.abs(p.y-q.y)-2*Math.abs((N.x-p.x)-(q.x-N.x));if(s>bs){bs=s;El=p;Er=q}}
-if(!El){let bl=0,br=0;for(const p of Ls)if(p.a>bl){bl=p.a;El=p}for(const q of Rs)if(q.a>br){br=q.a;Er=q}}if(!El&&!Er)return;if(!El)El={x:2*N.x-Er.x,y:Er.y,a:Er.a};if(!Er)Er={x:2*N.x-El.x,y:El.y,a:El.a};
-const U=c=>[(c.x+.5)/GW,(c.y+.5)/GH*.6],f={l:U(El),r:U(Er),n:U(N),e:Math.sqrt(Math.max(El.a,Er.a)/Math.PI)/GW};
+const ok=(c,sd)=>{const dx=(c.x-N.x)*sd;return c!==N&&c.a<=GW*GW*.012&&c.a<N.a*.8&&dx>GW*.06&&dx<GW*.38&&c.y<N.y-1&&Math.abs(c.y-(N.y-GH*.15))<GH*.17},Ls=big.filter(c=>ok(c,-1)),Rs=big.filter(c=>ok(c,1));let El=null,Er=null,bs=-1e9;
+for(const p of Ls)for(const q of Rs){const s=p.a+q.a-3*Math.abs(p.y-q.y)-.5*Math.abs((N.x-p.x)-(q.x-N.x))-.8*(q.x-p.x);if(s>bs){bs=s;El=p;Er=q}}
+if(!El){let bl=0,br=0;for(const p of Ls)if(p.a>bl){bl=p.a;El=p}for(const q of Rs)if(q.a>br){br=q.a;Er=q}}if(!El&&!Er)return;if(!El)El={x:2*N.x-Er.x,y:Er.y,a:Er.a,g:1};if(!Er)Er={x:2*N.x-El.x,y:El.y,a:El.a,g:1};
+const U=c=>[(c.x+.5)/GW,(c.y+.5)/GH*.6],f={l:U(El),r:U(Er),n:U(N),lg:El.g,rg:Er.g,e:Math.sqrt(Math.max(El.a,Er.a)/Math.PI)/GW};
 if(!b.f){b.f=f;return}const far=['l','r','n'].some(k=>Math.hypot(f[k][0]-b.f[k][0],f[k][1]-b.f[k][1])>.06);
-if(far){if(++b.fz>2){b.f=f;b.fz=0}}else{b.fz=0;for(const k of['l','r','n'])for(const z of[0,1])b.f[k][z]+=(f[k][z]-b.f[k][z])*.3;b.f.e+=(f.e-b.f.e)*.3}}
+if(far){if(++b.fz>2){b.f=f;b.fz=0}}else{b.fz=0;for(const k of['l','r','n'])for(const z of[0,1])b.f[k][z]+=(f[k][z]-b.f[k][z])*.3;b.f.e+=(f.e-b.f.e)*.3;b.f.lg=f.lg;b.f.rg=f.rg}}
 const PR=[[.13,.12,1.4,1.6,1,.45,1.3],[.1,.04,1,1,1.6,.15,1],[.12,.1,1,2.4,.5,.3,1.1],[.16,.05,1,.6,.3,.2,.8]];function nz(k,s){const i=Math.floor(k),f=k-i,h=n=>{const q=S((n+s)*127.1)*43758.5;return q-Math.floor(q)-.5},g=f*f*(3-2*f);return h(i)*(1-g)+h(i+1)*g}
 const FS=`precision highp float;uniform sampler2D T;uniform vec2 Z;uniform float MI;uniform vec4 B[4],P[4],Q[4],EL[4],ER[4],N[4],DE[4];uniform float DB;
 void main(){vec2 p=vec2(gl_FragCoord.x,Z.y-gl_FragCoord.y);if(MI>0.)p.x=Z.x-p.x;vec4 col=texture2D(T,p/Z);
@@ -62,14 +62,14 @@ const fc2=document.createElement('canvas'),fx2=fc2.getContext('2d',{willReadFreq
 function tk(b,k,est,r){let o=b[k];if(o){o.far=Math.hypot(o.p[0]-est[0],o.p[1]-est[1])>b.w*.08?(o.far||0)+1:0}if(!o||o.miss>20||o.far>10)o=b[k]={p:est.slice(),miss:0,cf:0};const p=o.p,s=r*2.5;fx2.drawImage(v,p[0]-s,p[1]-s,2*s,2*s,0,0,16,16);const d=fx2.getImageData(0,0,16,16).data,L=[];let mn=1e9,avg=0,sx=0,sy=0,sw=0;
 for(let i=0;i<256;i++){const l=d[i*4]+d[i*4+1]+d[i*4+2];L.push(l);avg+=l;if(l<mn)mn=l}avg/=256;const th=mn+(avg-mn)*.3,ok=avg-mn>60;
 if(ok){for(let i=0;i<256;i++)if(L[i]<th){const w=th-L[i];sx+=(i%16+.5)*w;sy+=((i>>4)+.5)*w;sw+=w}const nx=p[0]-s+sx/sw/8*s,ny=p[1]-s+sy/sw/8*s,dd=Math.hypot(nx-p[0],ny-p[1]);if(dd>r*.15){const g=dd>r?.6:.2;p[0]+=(nx-p[0])*g;p[1]+=(ny-p[1])*g}o.miss=0;o.cf++}else{o.miss++;o.cf=0}
-return o.cf>4?p:[-1e4,-1e4]}
+return o.cf>2?p:[-1e4,-1e4]}
 function draw(){const t=performance.now();if(v.videoWidth&&(c.width!=v.videoWidth||c.height!=v.videoHeight)){c.width=v.videoWidth;c.height=v.videoHeight;bears=[]}for(const b of bears)if(b.tx!=null){b.x+=(b.tx-b.x)*.15;b.y+=(b.ty-b.y)*.15;b.w+=(b.tw-b.w)*.15;b.h+=(b.th-b.h)*.15}if(v.readyState>1||v.complete){gl.viewport(0,0,c.width,c.height);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,v);
 const A={B:[],P:[],Q:[],EL:[],ER:[],N:[],X:[],DE:[]};for(let i=0;i<4;i++){const b=bears[i];let a=0;if(b){const al=(t-b.t0)/1e3,k=t/1e3+b.ph;a=cl((al-.5)/.6);a=a*a*(3-2*a);
 if(a){const M=PR[b.pr||0],pk=M[3]*Math.exp(-(((al-.8)/.3)**2)),lk=a*M[2]*Math.sign(c.width/2-b.x-b.w/2)*(b.pr==1?cl((al-1.5)/.4)*1.7-.7:1),r=Math.max((b.f&&b.f.e||.025)*b.w,3),f=b.f||{l:[.38,.25],r:[.62,.25],n:[.5,.36]},X=u=>b.x+u*b.w,Y=w=>b.y+w*b.h;
 let up=al>2.5?cl((nz(al*.3,b.ph+20)-.05)*5):0;up=a*up*up*(3-2*up);if(t>(b.nb||0)){b.bs=t;b.nb=t+2e3+Math.random()*2e3}
 A.B.push(b.x,b.y,b.w,b.h);A.P.push(a,a*M[0]*(b.tb*.5+1.3*nz(k*.7,b.ph))+M[4]*.12*Math.exp(-(((al-1.7)/.45)**2))*S(al*15),a*M[1]*.5*(1+.5*nz(k*.3,b.ph+7))+a*.005*S(k*2.4)+.06*pk,lk);
 A.Q.push(a*M[6]*cl((al-1)/.4)*(.85+.15*nz(al*.3,b.ph+30)),up*(M[5]*.6+.04*S(al*3)),a*Math.min(1,Math.max(0,1.6-Math.abs(t-b.bs-60)/30)),b.sd);
-A.DE.push(X(f.l[0]),Y(f.l[1]),X(f.r[0]),Y(f.r[1]));A.EL.push(...tk(b,'el',[X(f.l[0]),Y(f.l[1])],r),lk*r*.35,a*.005*nz(k*.35,b.ph+11));A.ER.push(...tk(b,'er',[X(f.r[0]),Y(f.r[1])],r),X((f.l[0]+f.r[0]+f.n[0])/3),Y(Math.min(f.l[1],f.r[1])-.05));A.X.push(a*(nz(al*.6,b.ph+50)>.15?.25*S(al*20):0)+.3*pk*S(al*25),a*.035*nz(k*.9,b.ph+60)+.04*pk,.03*a,0);A.N.push(X(f.n[0]),Y(f.n[1]),r,a*(nz(al*.5,b.ph+40)>.15?.08*S(al*25)**2:0));continue}}
+A.DE.push(X(f.l[0]),Y(f.l[1]),X(f.r[0]),Y(f.r[1]));A.EL.push(...(f.lg?[-1e4,-1e4]:tk(b,'el',[X(f.l[0]),Y(f.l[1])],r)),lk*r*.35,a*.005*nz(k*.35,b.ph+11));A.ER.push(...(f.rg?[-1e4,-1e4]:tk(b,'er',[X(f.r[0]),Y(f.r[1])],r)),X((f.l[0]+f.r[0]+f.n[0])/3),Y(Math.min(f.l[1],f.r[1])-.05));A.X.push(a*(nz(al*.6,b.ph+50)>.15?.25*S(al*20):0)+.3*pk*S(al*25),a*.035*nz(k*.9,b.ph+60)+.04*pk,.03*a,0);A.N.push(X(f.n[0]),Y(f.n[1]),r,a*(nz(al*.5,b.ph+40)>.15?.08*S(al*25)**2:0));continue}}
 for(const z in A)A[z].push(0,0,1,1)}if(ONLY_BLINK)for(let i=0;i<4;i++){const o=i*4;A.P[o+1]=A.P[o+2]=A.P[o+3]=0;A.Q[o]=A.Q[o+1]=0;A.EL[o+2]=A.EL[o+3]=0;A.N[o+3]=0;if(A.X)A.X[o]=A.X[o+1]=A.X[o+2]=0}for(const z in A)gl.uniform4fv(U(z),A[z]);gl.uniform2f(U('Z'),c.width,c.height);gl.uniform1f(U('DB'),dbg?1:0);gl.uniform1f(U('MI'),face=='user'?1:0);gl.drawArrays(gl.TRIANGLES,0,3)}
 requestAnimationFrame(draw)}
 document.addEventListener("pointerdown",()=>{const d=document.documentElement;document.fullscreenElement||d.requestFullscreen?.({navigationUI:"hide"}).catch(()=>{})});
