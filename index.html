@@ -10,18 +10,24 @@
 #s{width:76px;height:76px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 4px #000,0 0 0 7px #fff}#s:active{transform:scale(.92)}
 #f{width:48px;height:48px;border-radius:50%;background:#fff2;border:0;color:#fff;font-size:24px}</style>
 <div id=top><span>⚙︎</span><span>ϟ</span><span>◷</span><span style="font-size:13px;border:1.5px solid #fff;border-radius:4px;padding:1px 4px">3:4</span><span>✦</span></div>
-<div id=pv><video id=v playsinline muted></video><canvas id=c></canvas><div id=z><b>.6</b><b class=on>1x</b><b>3</b></div></div>
+<div id=pv><video id=v playsinline muted></video><canvas id=c></canvas><div id=tm style="position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#e22;padding:3px 10px;border-radius:12px;font-size:14px;display:none"></div><div id=z><b>.6</b><b class=on>1x</b><b>3</b></div></div>
 <div id=m><span>MORE</span><span>PORTRAIT</span><span class=on>PHOTO</span><span>VIDEO</span></div>
 <div id=b><div id=g></div><button id=s></button><button id=f>⟲</button></div>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
 <script>
-const v=document.getElementById('v'),c=document.getElementById('c'),x=c.getContext('2d');let m,face='environment',bears=[],st,last;
-async function cam(){st&&st.getTracks().forEach(t=>t.stop());st=await navigator.mediaDevices.getUserMedia({video:{facingMode:face,width:1440,height:1920}});v.srcObject=st;await v.play();c.width=v.videoWidth;c.height=v.videoHeight}
+const v=document.getElementById('v'),c=document.getElementById('c'),x=c.getContext('2d');let m,face='environment',bears=[],st,last,mode='PHOTO',rec,ext='jpg',ti;
+async function cam(){st&&st.getTracks().forEach(t=>t.stop());const vc={facingMode:face,width:1440,height:1920};st=await navigator.mediaDevices.getUserMedia({video:vc});v.srcObject=st;await v.play();c.width=v.videoWidth;c.height=v.videoHeight}
 f.onclick=()=>{face=face=='user'?'environment':'user';cam()};
 z.onclick=e=>{if(e.target.tagName=='B'){z.querySelector('.on').className='';e.target.className='on'}};
-s.onclick=()=>{last=c.toDataURL('image/jpeg',.92);g.style.backgroundImage=`url(${last})`;c.style.opacity=0;setTimeout(()=>c.style.opacity=1,80)};
-g.onclick=()=>{if(!last)return;const a=document.createElement('a');a.download='IMG_'+Date.now()+'.jpg';a.href=last;a.click()};
+const M=document.getElementById('m');M.onclick=e=>{const t=e.target.textContent;if(rec||!/PHOTO|VIDEO/.test(t))return;mode=t;M.querySelector('.on').className='';e.target.className='on';s.style.background=t=='VIDEO'?'#e33':'#fff'};
+const thumb=()=>g.style.backgroundImage=`url(${c.toDataURL('image/jpeg',.5)})`;
+s.onclick=async()=>{if(mode=='PHOTO'){last=c.toDataURL('image/jpeg',.92);ext='jpg';thumb();c.style.opacity=0;setTimeout(()=>c.style.opacity=1,80);return}
+if(rec){rec.stop();rec=null;s.style.borderRadius='50%';s.style.transform='';tm.style.display='none';clearInterval(ti);return}
+const ms=c.captureStream(30),au=await navigator.mediaDevices.getUserMedia({audio:true}).catch(()=>null);au&&au.getTracks().forEach(t=>ms.addTrack(t));const mt=['video/mp4','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));
+const ch=[],r=rec=new MediaRecorder(ms,{mimeType:mt});r.ondataavailable=e=>ch.push(e.data);r.onstop=()=>{au&&au.getTracks().forEach(t=>t.stop());last=URL.createObjectURL(new Blob(ch,{type:mt}));ext=mt.slice(6);thumb()};r.start();
+s.style.borderRadius='22px';s.style.transform='scale(.7)';const t0=Date.now();tm.style.display='block';tm.textContent='00:00';ti=setInterval(()=>{const q=(Date.now()-t0)/1e3|0;tm.textContent=String(q/60|0).padStart(2,0)+':'+String(q%60).padStart(2,0)},500)};
+g.onclick=()=>{if(!last)return;const a=document.createElement('a');a.download=(ext=='jpg'?'IMG_':'VID_')+Date.now()+'.'+ext;a.href=last;a.click()};
 async function detect(){if(m&&v.readyState>1){const now=performance.now(),d=(await m.detect(v)).filter(p=>p.class=='teddy bear');
 bears=d.map(p=>{const[bx,by,w,h]=p.bbox,o=bears.find(b=>Math.hypot(b.x+b.w/2-bx-w/2,b.y+b.h/2-by-h/2)<w/2);return{x:bx,y:by,w,h,t0:o?o.t0:now}})}setTimeout(detect,250)}
 function draw(){const t=performance.now();x.save();if(face=='user'){x.translate(c.width,0);x.scale(-1,1)}x.drawImage(v,0,0);
