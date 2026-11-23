@@ -1,14 +1,27 @@
-<!doctype html><meta name=viewport content="width=device-width,initial-scale=1"><title>Camera</title>
-<style>body{margin:0;background:#000;overflow:hidden}canvas{width:100vw;height:100vh;object-fit:cover}
-button{position:fixed;bottom:24px;border:0;border-radius:50%;font-size:24px}#s{left:50%;transform:translateX(-50%);width:72px;height:72px;background:#fff;border:6px solid #aaa}#f{right:24px;width:52px;height:52px}video{display:none}</style>
-<video id=v playsinline muted></video><canvas id=c></canvas><button id=s></button><div style="position:fixed;bottom:110px;width:100%;text-align:center;color:#fc0;font:600 13px sans-serif;letter-spacing:2px">PHOTO</div><button id=f>🔄</button>
+<!doctype html><meta name=viewport content="width=device-width,initial-scale=1,user-scalable=no"><meta name=theme-color content="#000"><title>Camera</title>
+<style>*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;background:#000;color:#fff;font-family:system-ui,sans-serif;height:100svh;display:flex;flex-direction:column;overflow:hidden;user-select:none}
+#top{display:flex;justify-content:space-around;align-items:center;height:56px;font-size:20px;opacity:.95}
+#pv{position:relative;width:100vw;aspect-ratio:3/4}canvas{width:100%;height:100%;object-fit:cover;display:block}video{display:none}
+#z{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:6px;background:#0006;border-radius:30px;padding:4px}
+#z b{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:500}#z b.on{background:#0009;color:#fd0;width:42px;height:42px;font-size:13px}
+#m{display:flex;justify-content:center;gap:22px;font-size:14px;font-weight:600;margin:18px 0 auto;color:#ccc}#m .on{color:#fff;background:#fff3;padding:5px 14px;border-radius:20px;margin:-5px 0}
+#b{display:flex;justify-content:space-between;align-items:center;padding:0 34px 34px}
+#g{width:48px;height:48px;border-radius:50%;background:#333 center/cover;border:2px solid #fff3}
+#s{width:76px;height:76px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 4px #000,0 0 0 7px #fff}#s:active{transform:scale(.92)}
+#f{width:48px;height:48px;border-radius:50%;background:#fff2;border:0;color:#fff;font-size:24px}</style>
+<div id=top><span>⚙︎</span><span>ϟ</span><span>◷</span><span style="font-size:13px;border:1.5px solid #fff;border-radius:4px;padding:1px 4px">3:4</span><span>✦</span></div>
+<div id=pv><video id=v playsinline muted></video><canvas id=c></canvas><div id=z><b>.6</b><b class=on>1x</b><b>3</b></div></div>
+<div id=m><span>MORE</span><span>PORTRAIT</span><span class=on>PHOTO</span><span>VIDEO</span></div>
+<div id=b><div id=g></div><button id=s></button><button id=f>⟲</button></div>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
 <script>
-const v=document.getElementById('v'),c=document.getElementById('c'),x=c.getContext('2d');let m,face='user',bears=[],st;
-async function cam(){st&&st.getTracks().forEach(t=>t.stop());st=await navigator.mediaDevices.getUserMedia({video:{facingMode:face}});v.srcObject=st;await v.play();c.width=v.videoWidth;c.height=v.videoHeight}
+const v=document.getElementById('v'),c=document.getElementById('c'),x=c.getContext('2d');let m,face='environment',bears=[],st,last;
+async function cam(){st&&st.getTracks().forEach(t=>t.stop());st=await navigator.mediaDevices.getUserMedia({video:{facingMode:face,width:1440,height:1920}});v.srcObject=st;await v.play();c.width=v.videoWidth;c.height=v.videoHeight}
 f.onclick=()=>{face=face=='user'?'environment':'user';cam()};
-s.onclick=()=>{const a=document.createElement('a');a.download="IMG_"+Date.now()+".png";a.href=c.toDataURL();a.click();c.style.opacity=0;setTimeout(()=>c.style.opacity=1,80)};
+z.onclick=e=>{if(e.target.tagName=='B'){z.querySelector('.on').className='';e.target.className='on'}};
+s.onclick=()=>{last=c.toDataURL('image/jpeg',.92);g.style.backgroundImage=`url(${last})`;c.style.opacity=0;setTimeout(()=>c.style.opacity=1,80)};
+g.onclick=()=>{if(!last)return;const a=document.createElement('a');a.download='IMG_'+Date.now()+'.jpg';a.href=last;a.click()};
 async function detect(){if(m&&v.readyState>1){const now=performance.now(),d=(await m.detect(v)).filter(p=>p.class=='teddy bear');
 bears=d.map(p=>{const[bx,by,w,h]=p.bbox,o=bears.find(b=>Math.hypot(b.x+b.w/2-bx-w/2,b.y+b.h/2-by-h/2)<w/2);return{x:bx,y:by,w,h,t0:o?o.t0:now}})}setTimeout(detect,250)}
 function draw(){const t=performance.now();x.save();if(face=='user'){x.translate(c.width,0);x.scale(-1,1)}x.drawImage(v,0,0);
