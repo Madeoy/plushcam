@@ -28,8 +28,8 @@ const ms=c.captureStream(30),au=await navigator.mediaDevices.getUserMedia({audio
 const ch=[],r=rec=new MediaRecorder(ms,{mimeType:mt});r.ondataavailable=e=>ch.push(e.data);r.onstop=()=>{au&&au.getTracks().forEach(t=>t.stop());last=URL.createObjectURL(new Blob(ch,{type:mt}));ext=mt.slice(6);thumb()};r.start();
 s.style.borderRadius='22px';s.style.transform='scale(.7)';const t0=Date.now();tm.style.display='block';tm.textContent='00:00';ti=setInterval(()=>{const q=(Date.now()-t0)/1e3|0;tm.textContent=String(q/60|0).padStart(2,0)+':'+String(q%60).padStart(2,0)},500)};
 g.onclick=()=>{if(!last)return;const a=document.createElement('a');a.download=(ext=='jpg'?'IMG_':'VID_')+Date.now()+'.'+ext;a.href=last;a.click()};
-async function detect(){if(m&&v.readyState>1){const now=performance.now(),d=(await m.detect(v)).filter(p=>p.class=='teddy bear'),used=new Set;
-const nb=d.map(p=>{const[bx,by,w,h]=p.bbox,o=bears.find(b=>!used.has(b)&&Math.hypot(b.x+b.w/2-bx-w/2,b.y+b.h/2-by-h/2)<w/2);o&&used.add(o);const L=(q,n)=>o?o[q]*.7+n*.3:n;return{x:L('x',bx),y:L('y',by),w:L('w',w),h:L('h',h),t0:o?o.t0:now,seen:now}});
+async function detect(){if(m&&v.readyState>1){const now=performance.now(),d=(await m.detect(v,20,.35)).filter(p=>p.class=='teddy bear'),used=new Set;
+const nb=d.map(p=>{const[bx,by,w,h]=p.bbox,o=bears.find(b=>!used.has(b)&&Math.hypot(b.x+b.w/2-bx-w/2,b.y+b.h/2-by-h/2)<w/2);o&&used.add(o);const L=(q,n)=>o?o[q]*.7+n*.3:n;return{x:L('x',bx),y:L('y',by),w:L('w',w),h:L('h',h),t0:o?o.t0:now+Math.random()*500,ph:o?o.ph:Math.random()*9,seen:now}});
 bears=nb.concat(bears.filter(b=>!used.has(b)&&now-b.seen<1200))}setTimeout(detect,250)}
 const N=8,S=Math.sin,PI=Math.PI;
 function tri(s,d){const cx=(d[0]+d[2]+d[4])/3,cy=(d[1]+d[3]+d[5])/3;x.save();x.beginPath();
@@ -45,7 +45,7 @@ dx+=qx*(Math.cos(th)-1)-qy*S(th)+a*e*b.w*.018*S(k*1.1);dy+=qx*S(th)+qy*(Math.cos
 for(let j=0;j<N;j++)for(let i=0;i<N;i++){const p=P[j*(N+1)+i],r=P[j*(N+1)+i+1],l=P[(j+1)*(N+1)+i],z=P[(j+1)*(N+1)+i+1];
 tri([p[0],p[1],r[0],r[1],l[0],l[1]],[p[2],p[3],r[2],r[3],l[2],l[3]]);tri([r[0],r[1],z[0],z[1],l[0],l[1]],[r[2],r[3],z[2],z[3],l[2],l[3]])}}
 function draw(){const t=performance.now();x.save();if(face=='user'){x.translate(c.width,0);x.scale(-1,1)}x.drawImage(v,0,0);
-for(const b of bears){let a=Math.min(1,Math.max(0,(t-b.t0-1000)/800));a=a*a*(3-2*a);if(a)warp(b,a,t/1000,Math.exp(-(((t-b.t0-1500)/350)**2)))}
+for(const b of bears){let a=Math.min(1,Math.max(0,(t-b.t0-1000)/800));a=a*a*(3-2*a);if(a)warp(b,a,t/1000+b.ph,Math.exp(-(((t-b.t0-1500)/350)**2)))}
 x.restore();requestAnimationFrame(draw)}
 document.addEventListener("pointerdown",()=>{const d=document.documentElement;document.fullscreenElement||d.requestFullscreen?.({navigationUI:"hide"}).catch(()=>{})});
 cam().then(async()=>{draw();m=await cocoSsd.load();detect()});
