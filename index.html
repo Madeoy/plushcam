@@ -60,7 +60,7 @@ function tk(b,k,est,r){let o=b[k];if(!o||o.miss>20)o=b[k]={p:est.slice(),miss:0,
 for(let i=0;i<256;i++){const l=d[i*4]+d[i*4+1]+d[i*4+2];L.push(l);avg+=l;if(l<mn)mn=l}avg/=256;const th=mn+(avg-mn)*.3,ok=avg-mn>60;
 if(ok){for(let i=0;i<256;i++)if(L[i]<th){const w=th-L[i];sx+=(i%16+.5)*w;sy+=((i>>4)+.5)*w;sw+=w}const nx=p[0]-s+sx/sw/8*s,ny=p[1]-s+sy/sw/8*s,dd=Math.hypot(nx-p[0],ny-p[1]);if(dd>r*.15){const g=dd>r?.6:.2;p[0]+=(nx-p[0])*g;p[1]+=(ny-p[1])*g}o.miss=0;o.cf++}else{o.miss++;o.cf=0}
 return o.cf>4?p:[-1e4,-1e4]}
-function draw(){const t=performance.now();for(const b of bears)if(b.tx!=null){b.x+=(b.tx-b.x)*.15;b.y+=(b.ty-b.y)*.15;b.w+=(b.tw-b.w)*.15;b.h+=(b.th-b.h)*.15}if(v.readyState>1||v.complete){gl.viewport(0,0,c.width,c.height);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,v);
+function draw(){const t=performance.now();if(v.videoWidth&&(c.width!=v.videoWidth||c.height!=v.videoHeight)){c.width=v.videoWidth;c.height=v.videoHeight;bears=[]}for(const b of bears)if(b.tx!=null){b.x+=(b.tx-b.x)*.15;b.y+=(b.ty-b.y)*.15;b.w+=(b.tw-b.w)*.15;b.h+=(b.th-b.h)*.15}if(v.readyState>1||v.complete){gl.viewport(0,0,c.width,c.height);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,v);
 const A={B:[],P:[],Q:[],EL:[],ER:[],N:[],X:[],DE:[]};for(let i=0;i<4;i++){const b=bears[i];let a=0;if(b){const al=(t-b.t0)/1e3,k=t/1e3+b.ph;a=cl((al-.5)/.6);a=a*a*(3-2*a);
 if(a){const M=PR[b.pr||0],pk=M[3]*Math.exp(-(((al-.8)/.3)**2)),lk=a*M[2]*Math.sign(c.width/2-b.x-b.w/2)*(b.pr==1?cl((al-1.5)/.4)*1.7-.7:1),r=b.w*.03,f=b.f||{l:[.38,.25],r:[.62,.25],n:[.5,.36]},X=u=>b.x+u*b.w,Y=w=>b.y+w*b.h;
 let up=al>2.5?cl((nz(al*.3,b.ph+20)-.05)*5):0;up=a*up*up*(3-2*up);if(t>(b.nb||0)){b.bs=t;b.nb=t+2e3+Math.random()*2e3}
