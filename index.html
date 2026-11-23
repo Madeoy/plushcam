@@ -18,7 +18,7 @@
 <script>
 const v=document.getElementById('v'),c=document.getElementById('c'),gl=c.getContext('webgl',{preserveDrawingBuffer:true});let m,face='environment',bears=[],st,last,mode='PHOTO',rec,ext='jpg',ti;
 async function cam(){st&&st.getTracks().forEach(t=>t.stop());v.srcObject=null;bears=[];const gu=q=>navigator.mediaDevices.getUserMedia({video:q});try{st=await gu({facingMode:{exact:face},width:{ideal:1920},height:{ideal:1440}})}catch(e){await new Promise(r=>setTimeout(r,400));st=await gu({facingMode:face})}v.srcObject=st;await v.play();c.width=v.videoWidth;c.height=v.videoHeight}
-f.onclick=()=>{face=face=='user'?'environment':'user';cam()};
+let sw=0;f.onclick=async()=>{if(sw)return;sw=1;f.style.opacity=.4;const old=face;face=face=='user'?'environment':'user';try{await cam()}catch(e){face=old;await cam().catch(()=>{})}sw=0;f.style.opacity=1};
 z.onclick=e=>{if(e.target.tagName=='B'){z.querySelector('.on').className='';e.target.className='on'}};
 const M=document.getElementById('m');M.onclick=e=>{const t=e.target.textContent;if(rec||!/PHOTO|VIDEO/.test(t))return;mode=t;M.querySelector('.on').className='';e.target.className='on';s.style.background=t=='VIDEO'?'#e33':'#fff'};
 const thumb=()=>g.style.backgroundImage=`url(${c.toDataURL('image/jpeg',.5)})`;
