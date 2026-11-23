@@ -8,17 +8,19 @@
 #b{display:flex;justify-content:space-between;align-items:center;padding:0 34px 34px}
 #g{width:48px;height:48px;border-radius:50%;background:#333 center/cover;border:2px solid #fff3}
 #s{width:76px;height:76px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 4px #000,0 0 0 7px #fff}#s:active{transform:scale(.92)}
-#f{width:48px;height:48px;border-radius:50%;background:#fff2;border:0;color:#fff;font-size:24px}</style>
+#f{width:48px;height:48px;border-radius:50%;background:#fff2;border:0;color:#fff;font-size:24px}
+#status{position:absolute;top:44px;left:50%;transform:translateX(-50%);z-index:1;max-width:90%;padding:5px 10px;border-radius:12px;background:#0009;font-size:13px;text-align:center;white-space:nowrap}</style>
 <div id=top><span>⚙︎</span><span>ϟ</span><span>◷</span><span style="font-size:13px;border:1.5px solid #fff;border-radius:4px;padding:1px 4px">3:4</span><span>✦</span></div>
-<div id=pv><video id=v playsinline muted></video><canvas id=c></canvas><div id=tm style="position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#e22;padding:3px 10px;border-radius:12px;font-size:14px;display:none"></div><div id=z><b>.6</b><b class=on>1x</b><b>3</b></div></div>
+<div id=pv><video id=v playsinline muted></video><canvas id=c></canvas><div id=status role=status aria-live=polite>Starting camera…</div><div id=tm style="position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#e22;padding:3px 10px;border-radius:12px;font-size:14px;display:none"></div><div id=z><b>.6</b><b class=on>1x</b><b>3</b></div></div>
 <div id=m><span>MORE</span><span>PORTRAIT</span><span class=on>PHOTO</span><span>VIDEO</span></div>
 <div id=b><div id=g></div><button id=s></button><button id=f>⟲</button></div>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
 <script>
-const v=document.getElementById('v'),c=document.getElementById('c'),gl=c.getContext('webgl',{preserveDrawingBuffer:true});let m,face='environment',bears=[],st,last,mode='PHOTO',rec,ext='jpg',ti;
+const v=document.getElementById('v'),c=document.getElementById('c'),gl=c.getContext('webgl',{preserveDrawingBuffer:true}),status=document.getElementById('status');let m,face='environment',bears=[],st,last,mode='PHOTO',rec,ext='jpg',ti;
+function setStatus(text){if(status.textContent!==text)status.textContent=text}
 async function cam(){st&&st.getTracks().forEach(t=>t.stop());v.srcObject=null;bears=[];const gu=q=>navigator.mediaDevices.getUserMedia({video:q});try{st=await gu({facingMode:{exact:face},width:{ideal:2560},height:{ideal:1920}})}catch(e){await new Promise(r=>setTimeout(r,400));st=await gu({facingMode:face})}v.srcObject=st;await v.play();c.width=v.videoWidth;c.height=v.videoHeight}
-let sw=0,dbg=0;document.querySelector('#top span:nth-child(4)').onclick=e=>{dbg=!dbg;e.target.style.background=dbg?'#fd0':''};f.onclick=async()=>{if(sw)return;sw=1;f.style.opacity=.4;const old=face;face=face=='user'?'environment':'user';try{await cam()}catch(e){face=old;await cam().catch(()=>{})}sw=0;f.style.opacity=1};
+let sw=0,dbg=0;document.querySelector('#top span:nth-child(4)').onclick=e=>{dbg=!dbg;e.target.style.background=dbg?'#fd0':''};f.onclick=async()=>{if(sw)return;sw=1;f.style.opacity=.4;const old=face;face=face=='user'?'environment':'user';try{await cam();setStatus(m?'Looking for teddy bears…':'Loading teddy recognition…')}catch(e){face=old;console.error('Could not switch camera',e);try{await cam();setStatus('Could not switch camera; keeping previous camera.')}catch(restoreError){console.error('Could not restore camera',restoreError);setStatus('Could not open camera. Check permissions.')}}finally{sw=0;f.style.opacity=1}};
 z.onclick=e=>{if(e.target.tagName=='B'){z.querySelector('.on').className='';e.target.className='on'}};
 const M=document.getElementById('m');M.onclick=e=>{const t=e.target.textContent;if(rec||!/PHOTO|VIDEO/.test(t))return;mode=t;M.querySelector('.on').className='';e.target.className='on';s.style.background=t=='VIDEO'?'#e33':'#fff'};
 const thumb=()=>g.style.backgroundImage=`url(${c.toDataURL('image/jpeg',.5)})`;
@@ -28,10 +30,10 @@ const ms=c.captureStream(30),au=await navigator.mediaDevices.getUserMedia({audio
 const ch=[],r=rec=new MediaRecorder(ms,{mimeType:mt});r.ondataavailable=e=>ch.push(e.data);r.onstop=()=>{au&&au.getTracks().forEach(t=>t.stop());last=URL.createObjectURL(new Blob(ch,{type:mt}));ext=mt.slice(6);thumb()};r.start();
 s.style.borderRadius='22px';s.style.transform='scale(.7)';const t0=Date.now();tm.style.display='block';tm.textContent='00:00';ti=setInterval(()=>{const q=(Date.now()-t0)/1e3|0;tm.textContent=String(q/60|0).padStart(2,0)+':'+String(q%60).padStart(2,0)},500)};
 g.onclick=()=>{if(!last)return;const a=document.createElement('a');a.download=(ext=='jpg'?'IMG_':'VID_')+Date.now()+'.'+ext;a.href=last;a.click()};
-async function detect(){if(m&&v.readyState>1){const now=performance.now(),d=(await m.detect(v,20,.35)).filter(p=>p.class=='teddy bear'),used=new Set;
+async function detect(){try{if(m&&v.readyState>1){const now=performance.now(),d=(await m.detect(v,20,.35)).filter(p=>p.class=='teddy bear'),used=new Set;
 const nb=d.map(p=>{const[bx,by,w,h]=p.bbox,o=bears.find(b=>!used.has(b)&&Math.hypot(b.x+b.w/2-bx-w/2,b.y+b.h/2-by-h/2)<w/2);o&&used.add(o);const L=(q,n)=>o?o[q]*.7+n*.3:n;
 return{x:o?o.x:bx,y:o?o.y:by,w:o?o.w:w,h:o?o.h:h,tx:bx,ty:by,tw:w,th:h,pr:o?o.pr:Math.random()*4|0,tb:o?o.tb:Math.random()<.5?1:-1,t0:o?o.t0:now+Math.random()*500,ph:o?o.ph:Math.random()*9,wv:o?o.wv:null,sd:o?o.sd:Math.random()<.5?1:-1,f:o&&o.f,el:o&&o.el,er:o&&o.er,fz:o&&o.fz||0,nb:o&&o.nb,bs:o&&o.bs,seen:now}});
-bears=nb.concat(bears.filter(b=>!used.has(b)&&now-b.seen<1200));bears.forEach(b=>{if(b.wv==null)b.wv=!bears.some(o=>o.wv)&&Math.random()<.7});nb.forEach(feat)}setTimeout(detect,250)}
+bears=nb.concat(bears.filter(b=>!used.has(b)&&now-b.seen<1200));bears.forEach(b=>{if(b.wv==null)b.wv=!bears.some(o=>o.wv)&&Math.random()<.7});nb.forEach(feat);setStatus(bears.length?'Teddy detected — waiting for blink…':'Looking for teddy bears…')}}catch(e){console.error('Teddy recognition failed',e);setStatus('Teddy recognition failed. Reload and try again.');return}setTimeout(detect,250)}
 const ONLY_BLINK=1,S=Math.sin,fc=document.createElement('canvas'),fx=fc.getContext('2d',{willReadFrequently:true});fc.width=48;fc.height=40;
 function feat(b){const GW=96,GH=80,n=GW*GH;fc.width=GW;fc.height=GH;fx.drawImage(v,b.x,b.y,b.w,b.h*.6,0,0,GW,GH);const d=fx.getImageData(0,0,GW,GH).data,L=new Float32Array(n),I=new Float64Array((GW+1)*(GH+1));let gm=0;
 for(let i=0;i<n;i++){L[i]=d[i*4]*.3+d[i*4+1]*.59+d[i*4+2]*.11;gm+=L[i]}gm/=n;
@@ -50,7 +52,7 @@ const FS=`precision highp float;uniform sampler2D T;uniform vec2 Z;uniform float
 void main(){vec2 p=vec2(gl_FragCoord.x,Z.y-gl_FragCoord.y);if(MI>0.)p.x=Z.x-p.x;vec4 col=texture2D(T,p/Z);
 for(int i=0;i<4;i++){if(P[i].x<=0.||Q[i].z<=0.)continue;float R=N[i].z*1.25;
 for(int k=0;k<2;k++){vec2 E=k==0?EL[i].xy:ER[i].xy;float disc=1.-smoothstep(R*.8,R,length((p-E)*vec2(.72,1.)));float yl=E.y-R+2.*R*Q[i].z;
-float w=disc*(1.-smoothstep(yl-R*.12,yl+R*.12,p.y));vec4 fur=.5*(texture2D(T,(p+vec2(R*2.2,0.))/Z)+texture2D(T,(p-vec2(R*2.2,0.))/Z));col=mix(col,fur*(1.-.3*Q[i].z*smoothstep(yl-R*.3,yl,p.y)),w);}}
+float w=disc*(1.-smoothstep(yl-R*.12,yl+R*.12,p.y));vec2 dx=vec2(R*1.8,0.),dy=vec2(0.,R*1.8),dg=vec2(R*1.3,R*1.3);vec4 fur=.125*(texture2D(T,(p+dx)/Z)+texture2D(T,(p-dx)/Z)+texture2D(T,(p+dy)/Z)+texture2D(T,(p-dy)/Z)+texture2D(T,(p+dg)/Z)+texture2D(T,(p-dg)/Z)+texture2D(T,(p+vec2(dg.x,-dg.y))/Z)+texture2D(T,(p-vec2(dg.x,-dg.y))/Z));col=mix(col,fur,w);}}
 if(DB>0.)for(int i=0;i<4;i++){vec4 b=B[i];if(b.z<3.)continue;float t=b.z*.006+2.;vec2 l=p-b.xy;if(l.x>-t&&l.y>-t&&l.x<b.z+t&&l.y<b.w+t&&(abs(l.x)<t||abs(l.y)<t||abs(l.x-b.z)<t||abs(l.y-b.w)<t))col=vec4(0,1,0,1);
 for(int k=0;k<2;k++){vec2 E=k==0?EL[i].xy:ER[i].xy,D=k==0?DE[i].xy:DE[i].zw;if(abs(length(p-E)-N[i].z)<t)col=vec4(1,0,0,1);if(length(p-D)<t*2.)col=vec4(1,1,0,1);}if(length(p-N[i].xy)<t*2.)col=vec4(0,.5,1,1);}
 gl_FragColor=col;}`;
@@ -74,5 +76,6 @@ for(const z in A)A[z].push(0,0,1,1)}if(ONLY_BLINK)for(let i=0;i<4;i++){const o=i
 requestAnimationFrame(draw)}
 document.addEventListener("pointerdown",()=>{const d=document.documentElement;document.fullscreenElement||d.requestFullscreen?.({navigationUI:"hide"}).catch(()=>{})});
 navigator.serviceWorker&&navigator.serviceWorker.register('sw.js');
-cam().then(async()=>{draw();m=await cocoSsd.load();detect()});
+async function start(){try{if(!window.isSecureContext)throw new Error('Camera access requires HTTPS or localhost');if(!gl)throw new Error('WebGL is not available in this browser');setStatus('Starting camera…');await cam();draw();setStatus('Loading teddy recognition…');m=await cocoSsd.load();setStatus('Looking for teddy bears…');detect()}catch(e){console.error('Could not start teddy camera',e);setStatus(!window.isSecureContext?'Open this app on HTTPS or localhost to use the camera.':e.name==='NotAllowedError'?'Camera access was denied. Allow camera access and reload.':'Could not start camera or teddy recognition. Check your connection and try again.')}}
+start();
 </script>
