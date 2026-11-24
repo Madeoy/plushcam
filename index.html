@@ -185,7 +185,7 @@ async function detect() {
   .filter(p => plushAnimalClasses.has(p.class))
   .filter(p => {
     const area = p.bbox[2] * p.bbox[3];
-    return area > 3500 && area < v.videoWidth * v.videoHeight * 0.5;
+    return area > 3500 && area < v.videoWidth * v.videoHeight * 0.9;
   });
       const nb = d.map(p => {
         const [bx, by, w, h] = p.bbox;
