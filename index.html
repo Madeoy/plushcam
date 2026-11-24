@@ -63,10 +63,10 @@ async function cam() {
   bears = [];
   const gu = q => navigator.mediaDevices.getUserMedia({video: q});
   try {
-    st = await gu({facingMode: {exact: face}, width: {ideal: 2560}, height: {ideal: 1920}});
+    st = await gu({facingMode: {exact: face}, width: {ideal: 1280}, height: {ideal: 960}});
   } catch (e) {
     await new Promise(r => setTimeout(r, 400));
-    st = await gu({facingMode: face, width: {ideal: 2560}, height: {ideal: 1920}});
+    st = await gu({facingMode: face, width: {ideal: 1280}, height: {ideal: 960}});
   }
   v.srcObject = st;
   v.style.transform = face === 'user' ? 'scaleX(-1)' : '';
@@ -176,7 +176,7 @@ async function detect() {
     if (m && v.readyState > 1) {
       const now = performance.now();
       const used = new Set();
-const d = (await m.detect(v, 30, 0.25))
+  const d = (await m.detect(v, 10, 0.25))
   .filter(p => p.class !== 'person')
   .filter(p => {
     const area = p.bbox[2] * p.bbox[3];
@@ -214,7 +214,7 @@ const d = (await m.detect(v, 30, 0.25))
     setTimeout(detect, 1000);
     return;
   }
-  setTimeout(detect, 250);
+  setTimeout(detect, 500);
 }
 
 const bl = d => {
