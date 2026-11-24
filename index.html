@@ -171,13 +171,18 @@ g.onclick = () => {
   a.click();
 };
 
+const plushAnimalClasses = new Set([
+  'teddy bear', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
+  'elephant', 'bear', 'zebra', 'giraffe'
+]);
+
 async function detect() {
   try {
     if (m && v.readyState > 1) {
       const now = performance.now();
       const used = new Set();
   const d = (await m.detect(v, 10, 0.25))
-  .filter(p => p.class === 'teddy bear')
+  .filter(p => plushAnimalClasses.has(p.class))
   .filter(p => {
     const area = p.bbox[2] * p.bbox[3];
     return area > 3500 && area < v.videoWidth * v.videoHeight * 0.5;
