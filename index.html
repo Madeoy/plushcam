@@ -311,7 +311,7 @@ function feat(b) {
   }
 
   const eyes = big
-    .filter(c => c.a <= GW*GW*.035 && c.x > GW*.15 && c.x < GW*.85 && c.y > GH*.25 && c.y < GH*.78)
+    .filter(c => c.a <= GW*GW*.035 && c.x > GW*.15 && c.x < GW*.85 && c.y > GH*.25 && c.y < GH*.7)
     .sort((a, b) => b.a - a.a)
     .slice(0, 48);
   let El = null, Er = null, bs = -1e9;
@@ -323,7 +323,8 @@ function feat(b) {
       const ratio = Math.min(p.a, q.a) / Math.max(p.a, q.a);
       if (p.x > GW*.48 || q.x < GW*.52 || sep < GW*.14 || sep > GW*.5 || dy > GH*.15 || ratio < .25) continue;
       if (N && (p === N || q === N || (p.y+q.y)/2 > N.y || Math.abs((p.x+q.x)/2 - N.x) > GW*.1 || N.y - (p.y+q.y)/2 > sep*.7)) continue;
-      const s = Math.min(p.a, q.a) - .5*Math.abs(p.a - q.a) - 2*dy - .35*Math.abs(sep - GW*.27) - .2*Math.abs((p.x+q.x)/2 - GW*.5) - 20*(p.l + q.l)/2 / gm;
+      const trackCost = b.f ? Math.hypot(p.x - b.f.l[0]*GW, p.y - b.f.l[1]/.6*GH) + Math.hypot(q.x - b.f.r[0]*GW, q.y - b.f.r[1]/.6*GH) : 0;
+      const s = Math.min(p.a, q.a) - .5*Math.abs(p.a - q.a) - 2*dy - .35*Math.abs(sep - GW*.27) - .2*Math.abs((p.x+q.x)/2 - GW*.5) - 20*(p.l + q.l)/2 / gm - trackCost*1.5;
       if (s > bs) { bs = s; El = p; Er = q; }
     }
   }
@@ -382,7 +383,7 @@ void main() {
   for (int i = 0; i < 4; i++) {
     if (P[i].x <= 0. || Q[i].z <= 0.) continue;
 
-    float R = max(N[i].z, 2.5);
+    float R = max(N[i].z * 1.25, 3.5);
 
     for (int k = 0; k < 2; k++) {
       vec2 E = k == 0 ? EL[i].xy : ER[i].xy;
@@ -624,7 +625,7 @@ function fallbackDraw() {
 
         fctx.fillStyle = `rgb(${rr/n|0},${gg/n|0},${bb/n|0})`;
         fctx.beginPath();
-        fctx.ellipse(x, y, r * 1.02, r * 1.05 * blink, 0, 0, Math.PI * 2);
+        fctx.ellipse(x, y, r * 1.25, r * 1.25 * blink, 0, 0, Math.PI * 2);
         fctx.fill();
       }
     }
