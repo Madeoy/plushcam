@@ -177,7 +177,7 @@ async function detect() {
       const now = performance.now();
       const used = new Set();
   const d = (await m.detect(v, 10, 0.25))
-  .filter(p => p.class !== 'person')
+  .filter(p => p.class === 'teddy bear')
   .filter(p => {
     const area = p.bbox[2] * p.bbox[3];
     return area > 3500 && area < v.videoWidth * v.videoHeight * 0.5;
@@ -418,7 +418,7 @@ void main() {
   gl_FragColor = col;
 }`;
 
-let draw = () => {}, glReady = false, glChecked = false;
+let draw = () => {}, glReady = false, glChecked = false, lastRender = 0;
 
 try {
   if (gl) {
@@ -457,6 +457,11 @@ try {
     draw = function () {
       if (!glReady) return;
       const t = performance.now();
+      if (t - lastRender < 1000 / 30) {
+        requestAnimationFrame(draw);
+        return;
+      }
+      lastRender = t;
 
       if (v.videoWidth && (c.width !== v.videoWidth || c.height !== v.videoHeight)) {
         c.width = v.videoWidth;
@@ -556,6 +561,11 @@ function useFallback() {
 function fallbackDraw() {
   if (!fallbackActive) return;
   const w = v.videoWidth, h = v.videoHeight, t = performance.now();
+  if (t - lastRender < 1000 / 30) {
+    requestAnimationFrame(fallbackDraw);
+    return;
+  }
+  lastRender = t;
   if (w && h) {
     if (fcam.width !== w || fcam.height !== h) {
       fcam.width = w; fcam.height = h;
