@@ -218,7 +218,7 @@ async function detect() {
     setTimeout(detect, 1000);
     return;
   }
-  setTimeout(detect, 250);
+  setTimeout(detect, 150);
 }
 
 const bl = d => {
@@ -341,7 +341,7 @@ function feat(b) {
   // Strong absolute pinning so lids stay glued to the black eyes
   const P = q => [b.x + q[0]*b.w, b.y + q[1]*b.h];
   if (b.tx != null && Math.hypot(b.tx - b.x, b.ty - b.y) > b.w * .12) b.ah = [];
-  const AH = b.ah = (b.ah || []).concat([{l: P(f.l), r: P(f.r), n: P(f.n)}]).slice(-3);
+  const AH = b.ah = (b.ah || []).concat([{l: P(f.l), r: P(f.r), n: P(f.n)}]).slice(-2);
 
   const md = a => { a.sort((p, q) => p - q); return a[a.length >> 1]; };
   const o = {};
@@ -351,8 +351,8 @@ function feat(b) {
   b.a = o;
 
   // Median filter on relative features
-  const H = b.fh = (b.fh || []).concat([f]).slice(-5);
-  if (H.length < 3) return;
+  const H = b.fh = (b.fh || []).concat([f]).slice(-3);
+  if (H.length < 2) return;
 
   const m = {e: md(H.map(h => h.e))};
   for (const k of ['l', 'r', 'n']) {
@@ -362,9 +362,9 @@ function feat(b) {
   if (!b.f) { b.f = m; return; }
 
   for (const k of ['l', 'r', 'n']) {
-    for (const z of [0, 1]) b.f[k][z] += (m[k][z] - b.f[k][z]) * .65;
+    for (const z of [0, 1]) b.f[k][z] += (m[k][z] - b.f[k][z]) * .8;
   }
-  b.f.e += (m.e - b.f.e) * .65;
+  b.f.e += (m.e - b.f.e) * .8;
 }
 
 const FS = `
@@ -487,10 +487,10 @@ try {
 
       for (const b of bears) {
         if (b.tx != null) {
-          b.x += (b.tx - b.x) * .35;
-          b.y += (b.ty - b.y) * .35;
-          b.w += (b.tw - b.w) * .35;
-          b.h += (b.th - b.h) * .35;
+          b.x += (b.tx - b.x) * .5;
+          b.y += (b.ty - b.y) * .5;
+          b.w += (b.tw - b.w) * .5;
+          b.h += (b.th - b.h) * .5;
         }
       }
 
@@ -583,10 +583,10 @@ function fallbackDraw() {
     }
     for (const b of bears) {
       if (b.tx != null) {
-        b.x += (b.tx - b.x) * .35;
-        b.y += (b.ty - b.y) * .35;
-        b.w += (b.tw - b.w) * .35;
-        b.h += (b.th - b.h) * .35;
+        b.x += (b.tx - b.x) * .5;
+        b.y += (b.ty - b.y) * .5;
+        b.w += (b.tw - b.w) * .5;
+        b.h += (b.th - b.h) * .5;
       }
     }
 
