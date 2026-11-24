@@ -181,7 +181,7 @@ async function detect() {
     if (m && v.readyState > 1) {
       const now = performance.now();
       const used = new Set();
-  const d = (await m.detect(v, 20, 0.18))
+  const d = (await m.detect(v, 20, 0.1))
   .filter(p => plushAnimalClasses.has(p.class))
   .filter(p => {
     const area = p.bbox[2] * p.bbox[3];
