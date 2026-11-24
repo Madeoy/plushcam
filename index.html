@@ -190,11 +190,12 @@ async function detect() {
   .slice(0, 4);
       const nb = d.map(p => {
         const [bx, by, w, h] = p.bbox;
-        const o = bears.find(b => !used.has(b) &&
+        const o = bears.find(b => b.cls === p.class && !used.has(b) &&
           Math.hypot(b.x + b.w/2 - bx - w/2, b.y + b.h/2 - by - h/2) < Math.max(w, h, b.w, b.h) * .7);
         o && used.add(o);
 
         return {
+          cls: p.class,
           x: o ? o.x : bx, y: o ? o.y : by,
           w: o ? o.w : w, h: o ? o.h : h,
           tx: bx, ty: by, tw: w, th: h,
@@ -321,10 +322,10 @@ function feat(b) {
       if (p.x >= q.x) continue;
       const sep = q.x - p.x, dy = Math.abs(p.y - q.y);
       const ratio = Math.min(p.a, q.a) / Math.max(p.a, q.a);
-      if (p.x > GW*.48 || q.x < GW*.52 || sep < GW*.14 || sep > GW*.5 || dy > GH*.15 || ratio < .25) continue;
-      if (N && (p === N || q === N || (p.y+q.y)/2 > N.y || Math.abs((p.x+q.x)/2 - N.x) > GW*.1 || N.y - (p.y+q.y)/2 > sep*.7)) continue;
+      if (p.x > GW*.5 || q.x < GW*.5 || sep < GW*.12 || sep > GW*.65 || dy > GH*.18 || ratio < .25) continue;
+      if (N && p !== N && q !== N && ((p.y+q.y)/2 > N.y || Math.abs((p.x+q.x)/2 - N.x) > GW*.1 || N.y - (p.y+q.y)/2 > sep*.7)) continue;
       const trackCost = b.f ? Math.hypot(p.x - b.f.l[0]*GW, p.y - b.f.l[1]/.6*GH) + Math.hypot(q.x - b.f.r[0]*GW, q.y - b.f.r[1]/.6*GH) : 0;
-      const s = Math.min(p.a, q.a) - .5*Math.abs(p.a - q.a) - 2*dy - .35*Math.abs(sep - GW*.27) - .2*Math.abs((p.x+q.x)/2 - GW*.5) - 20*(p.l + q.l)/2 / gm - trackCost*1.5;
+      const s = Math.min(p.a, q.a) - .5*Math.abs(p.a - q.a) - 2*dy - .35*Math.abs(sep - GW*.34) - .2*Math.abs((p.x+q.x)/2 - GW*.5) - 20*(p.l + q.l)/2 / gm - trackCost*1.5;
       if (s > bs) { bs = s; El = p; Er = q; }
     }
   }
