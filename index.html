@@ -181,12 +181,13 @@ async function detect() {
     if (m && v.readyState > 1) {
       const now = performance.now();
       const used = new Set();
-  const d = (await m.detect(v, 4, 0.25))
+  const d = (await m.detect(v, 20, 0.18))
   .filter(p => plushAnimalClasses.has(p.class))
   .filter(p => {
     const area = p.bbox[2] * p.bbox[3];
-    return area > 3500 && area < v.videoWidth * v.videoHeight * 0.9;
-  });
+    return area > 1000 && area < v.videoWidth * v.videoHeight * 0.9;
+  })
+  .slice(0, 4);
       const nb = d.map(p => {
         const [bx, by, w, h] = p.bbox;
         const o = bears.find(b => !used.has(b) &&
@@ -204,8 +205,6 @@ async function detect() {
           wv: o ? o.wv : null,
           sd: o ? o.sd : Math.random() < .5 ? 1 : -1,
           f: o && o.f, fh: o && o.fh, a: o && o.a, ah: o && o.ah,
-          nb: o && o.nb || now + 800 + Math.random()*700,
-          bs: o && o.bs || 0,
           seen: now
         };
       });
@@ -227,6 +226,14 @@ const bl = d => {
   return q * q * (3 - 2 * q);
 };
 const nextBlink = () => Math.random() < .15 ? 400 : 2000 + Math.random() * 4000;
+let sharedBlinkStart = 0, sharedBlinkAt = performance.now() + 1200;
+const blinkLevel = t => {
+  if (t >= sharedBlinkAt) {
+    sharedBlinkStart = t;
+    sharedBlinkAt = t + nextBlink();
+  }
+  return bl(t - sharedBlinkStart);
+};
 
 const rel = b => b.a && {
   l: [(b.a.l[0] - b.x)/b.w, (b.a.l[1] - b.y)/b.h],
@@ -510,14 +517,9 @@ try {
               const X = u => face === 'user' ? c.width - (b.x + u * b.w) : b.x + u * b.w;
               const Y = w => b.y + w * b.h;
 
-              if (t > (b.nb || 0)) {
-                b.bs = t;
-                b.nb = t + nextBlink();
-              }
-
               A.B.push(face === 'user' ? c.width - b.x - b.w : b.x, b.y, b.w, b.h);
               A.P.push(a, 0, 0, 0);
-              A.Q.push(0, 0, a * bl(t - b.bs), 0);
+              A.Q.push(0, 0, a * blinkLevel(t), 0);
               A.DE.push(X(f.l[0]), Y(f.l[1]), X(f.r[0]), Y(f.r[1]));
               A.EL.push(X(f.l[0]), Y(f.l[1]), 0, 0);
               A.ER.push(X(f.r[0]), Y(f.r[1]), 0, 0);
@@ -597,12 +599,8 @@ function fallbackDraw() {
     fctx.drawImage(v, 0, 0, w, h);
 
     for (const b of bears) {
-      if (t > (b.nb || 0)) {
-        b.bs = t;
-        b.nb = t + nextBlink();
-      }
       const age = (t - b.t0) / 1000;
-      const blink = Math.min(1, Math.max(0, age / .18)) * bl(t - b.bs);
+      const blink = Math.min(1, Math.max(0, age / .18)) * blinkLevel(t);
       if (blink < .05) continue;
 
       const faceFeatures = Object.assign({e: .025, l: [.38,.25], r: [.62,.25]}, b.f, rel(b));
