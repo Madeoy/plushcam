@@ -303,7 +303,10 @@ function feat(b) {
     if (s > ns) { ns = s; N = c; }
   }
 
-  const eyes = big.filter(c => c.a <= GW*GW*.035 && c.x > GW*.15 && c.x < GW*.85 && c.y > GH*.25 && c.y < GH*.78);
+  const eyes = big
+    .filter(c => c.a <= GW*GW*.035 && c.x > GW*.15 && c.x < GW*.85 && c.y > GH*.25 && c.y < GH*.78)
+    .sort((a, b) => b.a - a.a)
+    .slice(0, 48);
   let El = null, Er = null, bs = -1e9;
 
   for (const p of eyes) {
