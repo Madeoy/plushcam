@@ -175,9 +175,13 @@ async function detect() {
   try {
     if (m && v.readyState > 1) {
       const now = performance.now();
-      const d = (await m.detect(v, 20, .35)).filter(p => p.class === 'teddy bear');
       const used = new Set();
-
+const d = (await m.detect(v, 30, 0.25))
+  .filter(p => p.class !== 'person')
+  .filter(p => {
+    const area = p.bbox[2] * p.bbox[3];
+    return area > 3500 && area < v.videoWidth * v.videoHeight * 0.5;
+  });
       const nb = d.map(p => {
         const [bx, by, w, h] = p.bbox;
         const o = bears.find(b => !used.has(b) &&
